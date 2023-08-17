@@ -39,60 +39,55 @@ import FirebaseFirestoreSwift
 
 final class ProductManager {
     
-    
-    //productsCollection
-    private let productsCollection = Firestore.firestore().collection("products")
-    //productsDocument
+    //productCollection
+    private let productCollection = Firestore.firestore().collection("products")
+    //productDocument
     private func productsDocument(productId:String) -> DocumentReference {
-        productsCollection.document(productId)
+        productCollection.document(productId)
     }
     
     //uploadProduct
-    func uploadProduct(product:Product) async throws  {
-        try  productsDocument(productId: String(product.id)).setData(from: product, merge: false)
+    func uploadProduct(product:Product) async throws {
+        try productsDocument(productId: String(product.id)).setData(from: product, merge: false)
     }
     //getProduct
     func getProduct(productId:String) async throws -> Product {
         try await productsDocument(productId: productId).getDocument(as: Product.self)
     }
+    
     //getAllProductsQuery
     func getAllProductsQuery() -> Query {
-        productsCollection
+        productCollection
     }
-    //getAllProductsFilteredByCategory
-    func getAllProductsFilteredByCategory(category:String) -> Query {
-        productsCollection
+    //getAllProductsFilteredByCategoryQuery
+    func getAllProductsFilteredByCategoryQuery(category:String) -> Query {
+        productCollection
             .whereField(Product.CodingKeys.category.rawValue, isEqualTo: category)
     }
-    //getAllProductsSortedByPrice
-    func getAllProductsSortedByPrice(descending:Bool) -> Query {
-        productsCollection
-            .order(by: Product.CodingKeys.price.rawValue, descending: descending)
+    //getAllProductsSortedByPriceQuery
+    func getAllProductsSortedByPriceQuery(isDescending:Bool) -> Query {
+        productCollection
+            .order(by: Product.CodingKeys.price.rawValue, descending: isDescending)
     }
-    //getAllProductsFilteredByCategoryAndSortedByPrice
-    func getAllProductsFilteredByCategoryAndSortedByPrice(category:String,descending:Bool) -> Query {
-        productsCollection
+    //getAllProductsFilteredByCategoryandSortedByPriceQuery
+    func getAllProductsFilteredByCategoryandSortedByPriceQuery(category:String,isDescending:Bool) -> Query {
+        productCollection
             .whereField(Product.CodingKeys.category.rawValue, isEqualTo: category)
-            .order(by: Product.CodingKeys.price.rawValue, descending: descending)
+            .order(by: Product.CodingKeys.price.rawValue, descending: isDescending)
+
     }
+    
+    
     //getAllProducts
-    func getAllProducts(isCategory category:String?,priceDescending descending:Bool?, lastDocument: DocumentSnapshot?) async throws -> ([Product],DocumentSnapshot?) {
-        var query: Query = getAllProductsQuery()
-        if let category, let descending {
-            query = getAllProductsFilteredByCategoryAndSortedByPrice(category: category, descending: descending)
-        } else if let category {
-            query = getAllProductsFilteredByCategory(category: category)
-        } else if let descending {
-            query = getAllProductsSortedByPrice(descending: descending)
-        }
-        return try await query
-            .startOptionally(afterDocument: lastDocument)
-            .getDocumentsWithSnapshot(as: Product.self)
+    func getAllProducts() async throws -> [Product] {
+        try await productCollection
+            .getDocuments(as: Product.self)
     }
     //getAllProductsCount
     func getAllProductsCount() async throws -> Int {
-        try await productsCollection
+        try await productCollection
             .aggregateCount()
     }
+    
     
 }
