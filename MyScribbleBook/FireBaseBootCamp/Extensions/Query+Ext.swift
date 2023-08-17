@@ -20,17 +20,17 @@ import FirebaseFirestoreSwift
 extension Query {
     
     //getDocumentsWithSnapshot
-    func getDocumentsWithSnapshot<T>(as type:T.Type) async throws -> (products: [T], lastDocument: DocumentSnapshot?) where T:Decodable {
+    func getDocumentsWithSnapshot<T>(as type:T.Type) async throws -> (products: [T], lastDocument:DocumentSnapshot?) where T:Decodable {
         let snapshot = try await self.getDocuments()
         let products = try snapshot.documents.map({try $0.data(as: T.self)})
         return (products, snapshot.documents.last)
     }
     //getDocuments
-    func getDocuments<T>(as type:T.Type) async throws -> [T] where T:Decodable {
-        try await getDocumentsWithSnapshot(as: T.self).products
+    func getDocuments<T>(as type:T.Type) async throws -> [T] where T : Decodable {
+        try await self.getDocumentsWithSnapshot(as: T.self).products
     }
     //startOptionally
-    func startOptionally(afterDocument lastDocument:DocumentSnapshot?) -> Query {
+    func startOptionally(afterDocument lastDocument: DocumentSnapshot?) -> Query {
         guard let lastDocument else {return self}
         return self.start(afterDocument: lastDocument)
     }
@@ -40,10 +40,10 @@ extension Query {
         return Int(truncating: snapShot.count)
     }
     //addSnapshotListener
-    func addSnapshotListener<T>(as type:T.Type) -> (AnyPublisher<[T],Error>, ListenerRegistration) where T:Decodable {
+    func addSnapshotListener<T>(as type:T.Type) async throws -> (AnyPublisher<[T],Error>, ListenerRegistration) where T:Decodable {
         let publisher = PassthroughSubject<[T],Error>()
-        let listener = self.addSnapshotListener { quersSnapshot, error in
-            guard let encodedDocuments = quersSnapshot?.documents else {return}
+        let listener = self.addSnapshotListener { querySnapshot, error in
+            guard let encodedDocuments = querySnapshot?.documents else {return}
             let decodedDocuments = encodedDocuments.compactMap({try? $0.data(as: T.self)})
             publisher.send(decodedDocuments)
         }
