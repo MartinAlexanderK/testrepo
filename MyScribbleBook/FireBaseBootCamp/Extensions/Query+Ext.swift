@@ -40,7 +40,7 @@ extension Query {
         return Int(truncating: snapShot.count)
     }
     //addSnapshotListener
-    func addSnapshotListener<T>(as type:T.Type) async throws -> (AnyPublisher<[T],Error>, ListenerRegistration) where T:Decodable {
+    func addSnapshotListener<T>(as type:T.Type) -> (AnyPublisher<[T],Error>, ListenerRegistration) where T:Decodable {
         let publisher = PassthroughSubject<[T],Error>()
         let listener = self.addSnapshotListener { querySnapshot, error in
             guard let encodedDocuments = querySnapshot?.documents else {return}
