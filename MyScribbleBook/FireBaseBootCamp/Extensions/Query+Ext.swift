@@ -20,17 +20,17 @@ import FirebaseFirestoreSwift
 extension Query {
     
     //getDocumentsWithSnapshot
-    func getDocumentsWithSnapshot<T>(as type:T.Type) async throws -> (products: [T], lastDocument:DocumentSnapshot?) where T:Decodable {
+    func getDocumentsWithSnapshot<T>(as type:T.Type) async throws -> (products: [T], lastDocument: DocumentSnapshot?) where T:Decodable {
         let snapshot = try await self.getDocuments()
         let products = try snapshot.documents.map({try $0.data(as: T.self)})
         return (products, snapshot.documents.last)
     }
     //getDocuments
-    func getDocuments<T>(as type:T.Type) async throws -> [T] where T : Decodable {
-        try await self.getDocumentsWithSnapshot(as: T.self).products
+    func getDocuments<T>(as type:T.Type) async throws -> [T] where T:Decodable {
+        return try await getDocumentsWithSnapshot(as: T.self).products
     }
     //startOptionally
-    func startOptionally(afterDocument lastDocument: DocumentSnapshot?) -> Query {
+    func startOptionally(aferDocument lastDocument: DocumentSnapshot?) -> Query {
         guard let lastDocument else {return self}
         return self.start(afterDocument: lastDocument)
     }
@@ -44,8 +44,8 @@ extension Query {
         let publisher = PassthroughSubject<[T],Error>()
         let listener = self.addSnapshotListener { querySnapshot, error in
             guard let encodedDocuments = querySnapshot?.documents else {return}
-            let decodedDocuments = encodedDocuments.compactMap({try? $0.data(as: T.self)})
-            publisher.send(decodedDocuments)
+            let documents = encodedDocuments.compactMap({try? $0.data(as: T.self)})
+            publisher.send(documents)
         }
         return (publisher.eraseToAnyPublisher(), listener)
     }

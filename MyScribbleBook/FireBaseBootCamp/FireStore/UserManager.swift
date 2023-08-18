@@ -238,6 +238,7 @@ final class UserManager {
     func userFavoriteProductCollection(userId:String) -> CollectionReference {
         userDocument(userId: userId).collection("favorite_products")
     }
+    
     //userFavoriteProductDocument
     func userFavoriteProductDocument(userId:String, productId:String) -> DocumentReference {
         userFavoriteProductCollection(userId: userId).document(productId)
@@ -293,7 +294,7 @@ final class UserManager {
         try await userDocument(userId: userId).updateData(data as [AnyHashable : Any])
     }
     //addUserFavoriteProduct
-    func addUserFavoriteProduct(userId:String, productId:String) async throws {
+    func addUserFavoriteProduct(userId:String, productId:Int) async throws {
         let document = userFavoriteProductCollection(userId: userId).document()
         let documentId = document.documentID
         let data: [String:Any] = [
@@ -301,12 +302,13 @@ final class UserManager {
             UserFavoriteProuduct.CodingKeys.productId.rawValue : productId,
             UserFavoriteProuduct.CodingKeys.dateCreated.rawValue : Timestamp()
         ]
-        try await document.setData(data, merge: false)
+        try await document.setData(data)
     }
     //removeUserFavoriteProduct
     func removeUserFavoriteProduct(userId:String, productId:String) async throws {
         try await userFavoriteProductDocument(userId: userId, productId: productId).delete()
     }
+
     //getAllUserFavoriteProducts
     func getAllUserFavoriteProducts(userId:String) async throws -> [UserFavoriteProuduct] {
         try await userFavoriteProductCollection(userId: userId)
@@ -323,7 +325,7 @@ final class UserManager {
     //removeUserFavoriteProductListener
     func removeUserFavoriteProductListener(userId:String) {
         self.userFavoriteProductListener?.remove()
-    }
+    }    
 }
 
 
